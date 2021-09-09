@@ -1,0 +1,63 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "resourceName": {
+            "value": "akslab"
+        },
+        "location": {
+            "value": "westeurope"
+        },
+        "dnsPrefix": {
+            "value": "akslab-dns"
+        },
+        "kubernetesVersion": {
+            "value": "1.19.11"
+        },
+        "networkPlugin": {
+            "value": "azure"
+        },
+        "enableRBAC": {
+            "value": true
+        },
+        "enablePrivateCluster": {
+            "value": false
+        },
+        "enableHttpApplicationRouting": {
+            "value": false
+        },
+        "enableAzurePolicy": {
+            "value": false
+        },
+        "vmssNodePool": {
+            "value": true
+        },
+        "vnetSubnetID": {
+            "value": "/subscriptions/98bc5d13-2aa1-45cb-bf49-45aa47e220bf/resourceGroups/aks-lab/providers/Microsoft.Network/virtualNetworks/aks-lab-vnet/subnets/default"
+        },
+        "serviceCidr": {
+            "value": "10.0.0.0/16"
+        },
+        "dnsServiceIP": {
+            "value": "10.0.0.10"
+        },
+        "dockerBridgeCidr": {
+            "value": "172.17.0.1/16"
+        },
+        "workspaceName": {
+            "value": "DefaultWorkspace-98bc5d13-2aa1-45cb-bf49-45aa47e220bf-WEU"
+        },
+        "omsWorkspaceId": {
+            "value": "/subscriptions/98bc5d13-2aa1-45cb-bf49-45aa47e220bf/resourcegroups/defaultresourcegroup-weu/providers/microsoft.operationalinsights/workspaces/defaultworkspace-98bc5d13-2aa1-45cb-bf49-45aa47e220bf-weu"
+        },
+        "workspaceRegion": {
+            "value": "West Europe"
+        },
+        "acrName": {
+            "value": "fmiguelacr"
+        },
+        "acrResourceGroup": {
+            "value": "aks-lab"
+        }
+    }
+}

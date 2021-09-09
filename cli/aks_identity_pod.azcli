@@ -1,0 +1,28 @@
+export LOCATION=westeurope
+export AKS_RESOURCE_GROUP=rg-aks-lab
+export AKS_CLUSTER=aks-lab
+export IDENTITY_RESOURCE_GROUP="${AKS_RESOURCE_GROUP}-identity"
+export IDENTITY_NAME="sampleapp-identity"
+
+# As the identity can take more time to be propagated it is created first to give more time for its propagation
+# CREATE IDENTITY
+az group create --name ${IDENTITY_RESOURCE_GROUP} --location ${LOCATION}
+az identity create --resource-group ${IDENTITY_RESOURCE_GROUP} --name ${IDENTITY_NAME}
+export IDENTITY_CLIENT_ID="$(az identity show -g ${IDENTITY_RESOURCE_GROUP} -n ${IDENTITY_NAME} --query clientId -otsv)"
+export IDENTITY_RESOURCE_ID="$(az identity show -g ${IDENTITY_RESOURCE_GROUP} -n ${IDENTITY_NAME} --query id -otsv)"
+
+# CREATE AKS
+az group create --name ${AKS_RESOURCE_GROUP} --location ${LOCATION}
+az aks create -g ${AKS_RESOURCE_GROUP} -n ${AKS_CLUSTER} --enable-pod-identity --network-plugin azure
+az aks get-credentials --resource-group ${AKS_RESOURCE_GROUP} --name ${AKS_CLUSTER}
+
+
+# ASSIGN PERMISSION
+NODE_GROUP=$(az aks show -g ${AKS_RESOURCE_GROUP} -n ${AKS_CLUSTER} --query nodeResourceGroup -o tsv)
+NODES_RESOURCE_ID=$(az group show -n $NODE_GROUP -o tsv --query "id")
+az role assignment create --role "Managed Identity Operator" --assignee "$IDENTITY_CLIENT_ID" --scope $NODES_RESOURCE_ID
+
+# CREATE POD IDENTITY
+export POD_IDENTITY_NAME="my-pod-identity"
+export POD_IDENTITY_NAMESPACE="my-app"
+az aks pod-identity add --resource-group ${AKS_RESOURCE_GROUP} --cluster-name ${AKS_CLUSTER} --namespace ${POD_IDENTITY_NAMESPACE}  --name ${POD_IDENTITY_NAME} --identity-resource-id ${IDENTITY_RESOURCE_ID}
