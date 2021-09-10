@@ -19,7 +19,7 @@ SP_APP_SECRET=$(echo $SPJSON | jq .password -r)
 # CREATE KEY VAULt
 az keyvault create --name ${KV_NAME} --resource-group ${AKS_RESOURCE_GROUP} --location ${LOCATION}
 # ASSIGN PERMISSIONS TO THE IDENTITY by configuring Access Policy
-az keyvault set-policy --name ${KV_NAME} --resource-group ${AKS_RESOURCE_GROUP} --application-id ${SP_APP_ID} --secret-permissions get --certificate-permissions get --key-permissions get
+az keyvault set-policy --name ${KV_NAME} --resource-group ${AKS_RESOURCE_GROUP} --spn ${SP_APP_ID} --secret-permissions get --certificate-permissions get --key-permissions get
 
 
 # CREATE SAMPLE SECRETS
