@@ -1,0 +1,21 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: sampleapp-secrets
+spec:
+  containers:
+  - name: demowebapi
+    image: acrfmiguelakslab.azurecr.io/demowebapi:latest
+    volumeMounts:
+    - name: secrets-store-inline
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+  volumes:
+    - name: secrets-store-inline
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "azure-kvname"
+        nodePublishSecretRef:                       # Only required when using service principal mode
+          name: secrets-store-creds                 # Only required when using service principal mode

@@ -1,0 +1,61 @@
+export LOCATION=westeurope
+export AKS_RESOURCE_GROUP=rg-aks-lab
+export AKS_CLUSTER=aks-lab
+export ACR_NAME=acrfmiguelakslab
+export KV_NAME=kvfmiguelakslab
+export SPNAME=spakskvdemo
+export APP_NS=sampleapp-namespace
+
+# CREATE RESOURCE GROUP
+az group create --name ${AKS_RESOURCE_GROUP} --location ${LOCATION}
+
+# CREATE SP
+SPJSON=$(az ad sp create-for-rbac --skip-assignment --name $SPNAME )
+# SAVE appId and Secret
+SP_APP_ID=$(echo $SPJSON | jq .appId -r)
+SP_APP_SECRET=$(echo $SPJSON | jq .password -r) 
+
+
+# CREATE KEY VAULt
+az keyvault create --name ${KV_NAME} --resource-group ${AKS_RESOURCE_GROUP} --location ${LOCATION}
+# ASSIGN PERMISSIONS TO THE IDENTITY by configuring Access Policy
+az keyvault set-policy --name ${KV_NAME} --resource-group ${AKS_RESOURCE_GROUP} --application-id ${SP_APP_ID} --secret-permissions get --certificate-permissions get --key-permissions get
+
+
+# CREATE SAMPLE SECRETS
+az keyvault secret set --name secret1 --vault-name ${KV_NAME} --value "What a secret!! 1"
+az keyvault secret set --name secret2 --vault-name ${KV_NAME} --value "I am secret 2"
+
+# CREATE ACR
+az acr create --name ${ACR_NAME} --resource-group ${AKS_RESOURCE_GROUP} --sku Standard
+
+# CREATE AKS
+az aks create -g ${AKS_RESOURCE_GROUP} -n ${AKS_CLUSTER} --network-plugin azure --attach-acr ${ACR_NAME}
+az aks get-credentials --resource-group ${AKS_RESOURCE_GROUP} --name ${AKS_CLUSTER}
+
+
+# Deploy secret store provider
+helm repo add csi-secrets-store-provider-azure https://raw.githubusercontent.com/Azure/secrets-store-csi-driver-provider-azure/master/charts
+helm install csi csi-secrets-store-provider-azure/csi-secrets-store-provider-azure --namespace kube-system
+
+# create app namespace
+kubectl create namespace ${APP_NS}
+kubectl config set-context --current --namespace=${APP_NS}
+
+# Create AKS Secret store
+kubectl create secret generic secrets-store-creds --from-literal clientid=${SP_APP_ID} --from-literal clientsecret=${SP_APP_SECRET}
+
+# Label the secret
+kubectl label secret secrets-store-creds secrets-store.csi.k8s.io/used=true
+
+
+kubectl apply -f ./secretproviderclass.yaml
+
+# build sample app image
+cd webapi
+az acr build -r ${ACR_NAME} --resource-group ${AKS_RESOURCE_GROUP} -t demowebapi:latest .
+cd ..
+
+
+
+kubectl apply -f ./sampleapp.yaml
