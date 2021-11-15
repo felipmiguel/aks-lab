@@ -1,0 +1,1 @@
+az aks update -n aks-fmiguel-akslab-dev -g rg-fmiguel-akslab-dev --attach-acr crfmiguelakslabdev
