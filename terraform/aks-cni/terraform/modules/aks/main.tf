@@ -42,8 +42,3 @@ resource "azurerm_role_assignment" "acrpull_role" {
   role_definition_name = "AcrPull"
   principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
 }
-
-data "azurerm_public_ip" "aks_public_ip" {
-  name                = reverse(split("/", tolist(azurerm_kubernetes_cluster.aks.network_profile.0.load_balancer_profile.0.effective_outbound_ips)[0]))[0]
-  resource_group_name = azurerm_kubernetes_cluster.aks.resource_group_name
-}

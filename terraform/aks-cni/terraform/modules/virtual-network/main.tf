@@ -36,6 +36,7 @@ resource "azurerm_subnet" "aks_subnet" {
   resource_group_name  = var.resource_group
   virtual_network_name = azurerm_virtual_network.virtual_network.name
   address_prefixes     = [var.aks_subnet_prefix]
+  service_endpoints    = var.service_endpoints
 }
 
 resource "azurecaf_name" "private_endpoints_subnet" {
@@ -49,5 +50,4 @@ resource "azurerm_subnet" "private_endpoints_subnet" {
   resource_group_name  = var.resource_group
   virtual_network_name = azurerm_virtual_network.virtual_network.name
   address_prefixes     = [var.private_endpoints_subnet_prefix]
-  service_endpoints    = var.service_endpoints
 }
