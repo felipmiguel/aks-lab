@@ -25,8 +25,6 @@ resource "azurerm_key_vault" "application" {
 
   sku_name = "standard"
 
-
-
   network_acls {
     default_action             = "Deny"
     bypass                     = "None"

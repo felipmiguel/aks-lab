@@ -12,7 +12,14 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    key_vault {
+      purge_soft_delete_on_destroy = true
+    }
+  }
 }
 
 locals {
@@ -168,4 +175,13 @@ module "acr_dns" {
       ip_addresses = module.acr.server_ip_addresses
     }
   ]
+}
+
+module "jumpbox" {
+  source           = "./modules/vm"
+  resource_group   = azurerm_resource_group.main.name
+  application_name = var.application_name
+  environment      = local.environment
+  location         = var.location
+  subnet_id        = module.network.private_endpoints_subnet_id
 }
