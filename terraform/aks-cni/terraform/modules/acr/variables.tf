@@ -18,3 +18,8 @@ variable "location" {
   type        = string
   description = "The Azure region where all resources in this example should be created"
 }
+
+variable "subnet_id" {
+  type        = string
+  description = "The subnet from which the access is allowed"
+}

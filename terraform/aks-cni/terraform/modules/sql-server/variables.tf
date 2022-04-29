@@ -32,3 +32,8 @@ variable "subnet_id" {
   type        = string
   description = "The subnet from which the access is allowed"
 }
+
+variable "vnet_id" {
+  type        = string
+  description = "The virtual network id"
+}

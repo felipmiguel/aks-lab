@@ -18,5 +18,28 @@ resource "azurerm_container_registry" "acr" {
   resource_group_name = var.resource_group
   location            = var.location
   admin_enabled       = false
-  sku                 = "Standard"
+  sku                 = "Premium"
+  public_network_access_enabled = false
+    
+}
+
+resource "azurecaf_name" "private_endpoint" {
+  name          = var.application_name
+  resource_type = "azurerm_private_endpoint"
+  suffixes      = [var.environment, "acr"]
+}
+
+
+resource "azurerm_private_endpoint" "private_endpoint" {
+  name                = azurecaf_name.private_endpoint.result
+  location            = var.location
+  resource_group_name = var.resource_group
+  subnet_id           = var.subnet_id
+
+  private_service_connection {
+    name                           = "${azurerm_container_registry.acr.name}-pe"
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_container_registry.acr.id
+    subresource_names              = ["registry"]
+  }
 }

@@ -25,6 +25,8 @@ resource "azurerm_key_vault" "application" {
 
   sku_name = "standard"
 
+
+
   network_acls {
     default_action             = "Deny"
     bypass                     = "None"
@@ -36,6 +38,32 @@ resource "azurerm_key_vault" "application" {
     "environment"      = var.environment
     "application-name" = var.application_name
   }
+}
+
+resource "azurecaf_name" "private_endpoint" {
+  name          = var.application_name
+  resource_type = "azurerm_private_endpoint"
+  suffixes      = [var.environment, "vault"]
+}
+
+
+resource "azurerm_private_endpoint" "private_endpoint" {
+  name                = azurecaf_name.private_endpoint.result
+  location            = var.location
+  resource_group_name = var.resource_group
+  subnet_id           = var.subnet_id
+
+  private_service_connection {
+    name                           = "${azurerm_key_vault.application.name}-pe"
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_key_vault.application.id
+    subresource_names              = ["vault"]
+  }
+
+  depends_on = [
+    azurerm_key_vault_secret.database_password,
+    azurerm_key_vault_secret.database_username
+  ]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
@@ -56,7 +84,7 @@ resource "azurerm_key_vault_secret" "database_username" {
   value        = var.database_username
   key_vault_id = azurerm_key_vault.application.id
 
-  depends_on = [ azurerm_key_vault_access_policy.client ]
+  depends_on = [azurerm_key_vault_access_policy.client]
 }
 
 resource "azurerm_key_vault_secret" "database_password" {
@@ -64,5 +92,5 @@ resource "azurerm_key_vault_secret" "database_password" {
   value        = var.database_password
   key_vault_id = azurerm_key_vault.application.id
 
-  depends_on = [ azurerm_key_vault_access_policy.client ]
+  depends_on = [azurerm_key_vault_access_policy.client]
 }

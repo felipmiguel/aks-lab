@@ -1,7 +1,7 @@
 variable "application_name" {
   type        = string
   description = "The name of your application"
-  default     = "nubesgen-testapp"
+  default     = "aks-lab"
 }
 
 variable "environment" {
@@ -37,4 +37,9 @@ variable "private_endpoints_subnet_prefix" {
 variable "dns_prefix" {
   type    = string
   default = "fmiguel-aks-lab"
+}
+
+variable "admin_ids" {
+  type        = list(string)
+  description = "List of Azure Active Directory user object IDs that will be added to a new group and granted admin access to the cluster"
 }

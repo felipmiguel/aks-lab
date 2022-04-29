@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "3.0.2"
+      version = "3.4.0"
     }
     azurecaf = {
       source  = "aztfmod/azurecaf"
@@ -47,14 +47,15 @@ resource "azurerm_resource_group" "main" {
 }
 
 module "application" {
-  source           = "./modules/aks"
-  resource_group   = azurerm_resource_group.main.name
-  application_name = var.application_name
-  environment      = local.environment
-  location         = var.location
-  dns_prefix       = var.dns_prefix
-  aks_subnet_id    = module.network.aks_subnet_id
-  acr_id           = module.acr.acr_id
+  source                         = "./modules/aks"
+  resource_group                 = azurerm_resource_group.main.name
+  application_name               = var.application_name
+  environment                    = local.environment
+  location                       = var.location
+  dns_prefix                     = var.dns_prefix
+  aks_subnet_id                  = module.network.aks_subnet_id
+  acr_id                         = module.acr.acr_id
+  aks_rbac_admin_group_object_id = module.admins.admin_group_id
 }
 
 module "database" {
@@ -63,7 +64,8 @@ module "database" {
   application_name = var.application_name
   environment      = local.environment
   location         = var.location
-  subnet_id        = module.network.aks_subnet_id
+  subnet_id        = module.network.private_endpoints_subnet_id
+  vnet_id          = module.network.virtual_network_id
 }
 
 module "application-insights" {
@@ -84,7 +86,7 @@ module "key-vault" {
   database_username = module.database.database_username
   database_password = module.database.database_password
 
-  subnet_id = module.network.aks_subnet_id
+  subnet_id = module.network.private_endpoints_subnet_id
   myip      = local.myip
 }
 
@@ -95,7 +97,7 @@ module "network" {
   environment      = local.environment
   location         = var.location
 
-  service_endpoints = ["Microsoft.Sql", "Microsoft.KeyVault"]
+  service_endpoints = ["Microsoft.Sql", "Microsoft.KeyVault", "Microsoft.ContainerRegistry"]
 
   address_space                   = var.address_space
   aks_subnet_prefix               = var.aks_subnet_prefix
@@ -108,5 +110,62 @@ module "acr" {
   application_name = var.application_name
   environment      = local.environment
   location         = var.location
+  subnet_id        = module.network.private_endpoints_subnet_id
+}
 
+
+module "admins" {
+  source           = "./modules/admins"
+  application_name = var.application_name
+  environment      = local.environment
+  admin_ids        = var.admin_ids
+}
+
+module "database_dns" {
+  source             = "./modules/private-dns"
+  resource_group     = azurerm_resource_group.main.name
+  environment        = local.environment
+  application_name   = var.application_name
+  root_dns           = "database.windows.net"
+  virtual_network_id = module.network.virtual_network_id
+  service_suffix     = "mssql"
+  dns_entries = [
+    {
+      name         = module.database.database_name
+      ip_addresses = module.database.server_ip_addresses
+    }
+  ]
+}
+
+module "keyvault_dns" {
+  source             = "./modules/private-dns"
+  resource_group     = azurerm_resource_group.main.name
+  environment        = local.environment
+  application_name   = var.application_name
+  root_dns           = "vault.azure.net"
+  virtual_network_id = module.network.virtual_network_id
+  service_suffix     = "kv"
+  dns_entries = [
+    {
+      name         = module.key-vault.vault_name
+      ip_addresses = module.key-vault.server_ip_addresses
+    }
+  ]
+}
+
+
+module "acr_dns" {
+  source             = "./modules/private-dns"
+  resource_group     = azurerm_resource_group.main.name
+  environment        = local.environment
+  application_name   = var.application_name
+  root_dns           = "azurecr.io"
+  virtual_network_id = module.network.virtual_network_id
+  service_suffix     = "acr"
+  dns_entries = [
+    {
+      name         = module.acr.registry_name
+      ip_addresses = module.acr.server_ip_addresses
+    }
+  ]
 }

@@ -33,3 +33,8 @@ variable "acr_id" {
   type = string
   description = "value of the Azure Container Registry resource id"  
 }
+
+variable "aks_rbac_admin_group_object_id" {
+  type = string
+  description = "value of the Azure Kubernetes Service administrators group object id in Azure Active Directory"  
+}

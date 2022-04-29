@@ -30,6 +30,19 @@ resource "azurerm_kubernetes_cluster" "aks" {
     type = "SystemAssigned"
   }
 
+  azure_active_directory_role_based_access_control {
+    managed = true
+    admin_group_object_ids = [
+      var.aks_rbac_admin_group_object_id,
+    ]
+    azure_rbac_enabled = true
+  }
+
+  key_vault_secrets_provider {
+    secret_rotation_enabled  = true
+    secret_rotation_interval = "60m"
+  }
+
   network_profile {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
