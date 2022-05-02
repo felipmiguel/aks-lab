@@ -59,3 +59,10 @@ resource "azurerm_role_assignment" "acrpull_role" {
   role_definition_name = "AcrPull"
   principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
 }
+
+# grant permission to admin group to manage aks
+resource "azurerm_role_assignment" "aks_user_roles" {
+  scope                = azurerm_kubernetes_cluster.aks.id
+  role_definition_name = "Azure Kubernetes Service Cluster User Role"
+  principal_id         = var.aks_rbac_admin_group_object_id
+}
