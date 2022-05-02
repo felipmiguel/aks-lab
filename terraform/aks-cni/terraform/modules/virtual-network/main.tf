@@ -52,3 +52,20 @@ resource "azurerm_subnet" "private_endpoints_subnet" {
   enforce_private_link_endpoint_network_policies = true
   service_endpoints                              = var.service_endpoints
 }
+
+resource "azurecaf_name" "app_gateway_subnet" {
+  name          = var.application_name
+  resource_type = "azurerm_subnet"
+  suffixes      = [var.environment, "appgw"]
+}
+
+resource "azurerm_subnet" "app_gateway_subnet" {
+  name                                           = azurecaf_name.app_gateway_subnet.result
+  resource_group_name                            = var.resource_group
+  virtual_network_name                           = azurerm_virtual_network.virtual_network.name
+  address_prefixes                               = [var.app_gateway_subnet_prefix]
+  enforce_private_link_endpoint_network_policies = true
+  # service_endpoints                              = var.service_endpoints
+}
+
+

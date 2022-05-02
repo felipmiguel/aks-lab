@@ -34,6 +34,12 @@ variable "private_endpoints_subnet_prefix" {
   default     = "10.11.1.0/24"
 }
 
+variable "app_gateway_subnet_prefix" {
+  type        = string
+  description = "Application gateway subnet prefix"
+  default     = "10.11.2.0/24"
+}
+
 variable "dns_prefix" {
   type    = string
   default = "fmiguel-aks-lab"

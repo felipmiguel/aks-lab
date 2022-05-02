@@ -47,6 +47,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
+
+  ingress_application_gateway {
+    gateway_id = var.application_gateway_id
+  }
 }
 
 # grant permission to aks to pull images from acr

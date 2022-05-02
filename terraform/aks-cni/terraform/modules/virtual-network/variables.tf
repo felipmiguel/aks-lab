@@ -34,6 +34,10 @@ variable "aks_subnet_prefix" {
   description = "Azure Kubernetes Service subnet prefix"
 }
 
+variable "app_gateway_subnet_prefix" {
+  type        = string
+  description = "value of the app gateway subnet prefix"
+}
 variable "service_endpoints" {
   type        = list(string)
   description = "Service endpoints used by the solution"

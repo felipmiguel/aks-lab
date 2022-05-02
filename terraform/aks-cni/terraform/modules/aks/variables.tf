@@ -38,3 +38,8 @@ variable "aks_rbac_admin_group_object_id" {
   type = string
   description = "value of the Azure Kubernetes Service administrators group object id in Azure Active Directory"  
 }
+
+variable "application_gateway_id" {
+  type = string
+  description = "value of the application gateway resource id"  
+}

@@ -63,6 +63,7 @@ module "application" {
   aks_subnet_id                  = module.network.aks_subnet_id
   acr_id                         = module.acr.acr_id
   aks_rbac_admin_group_object_id = module.admins.admin_group_id
+  application_gateway_id         = module.application_gateway.application_gateway_id
 }
 
 module "database" {
@@ -109,6 +110,7 @@ module "network" {
   address_space                   = var.address_space
   aks_subnet_prefix               = var.aks_subnet_prefix
   private_endpoints_subnet_prefix = var.private_endpoints_subnet_prefix
+  app_gateway_subnet_prefix       = var.app_gateway_subnet_prefix
 }
 
 module "acr" {
@@ -177,6 +179,22 @@ module "acr_dns" {
   ]
 }
 
+# module "ingress_dns" {
+#   source         = "./modules/private-dns"
+#   resource_group     = azurerm_resource_group.main.name
+#   environment        = local.environment
+#   application_name   = var.application_name
+#   root_dns           = "azurecr.io"
+#   virtual_network_id = module.network.virtual_network_id
+#   service_suffix     = "ingress"
+#   dns_entries = [
+#     {
+#       name         = var.application_name
+#       ip_addresses = module.application.ingress_ip
+#     }
+#   ]
+# }
+
 module "jumpbox" {
   source           = "./modules/vm"
   resource_group   = azurerm_resource_group.main.name
@@ -184,4 +202,14 @@ module "jumpbox" {
   environment      = local.environment
   location         = var.location
   subnet_id        = module.network.private_endpoints_subnet_id
+}
+
+module "application_gateway" {
+  source           = "./modules/application-gateway"
+  resource_group   = azurerm_resource_group.main.name
+  application_name = var.application_name
+  environment      = local.environment
+  location         = var.location
+  subnet_id        = module.network.app_gateway_subnet_id
+  # backend_address  = "bing.com"
 }
